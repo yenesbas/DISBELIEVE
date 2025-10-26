@@ -114,7 +114,7 @@ const sounds = {
 
 // Volume controls (0.0 - 1.0)
 let masterVolume = 1.0;
-let musicVolume = 0.6;
+let musicVolume = 0.25;
 let sfxVolume = 1.0;
 
 // Initialize all sounds
