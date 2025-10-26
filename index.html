@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disbelieve Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        canvas {
+            border: 2px solid #444;
+            background-color: #2a2a2a;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #instructions {
+            text-align: center;
+            color: #aaa;
+        }
+        #instructions h2 {
+            margin: 0 0 10px 0;
+            color: #8c44ff;
+        }
+        #instructions p {
+            margin: 5px 0;
+        }
+        #stats {
+            font-size: 18px;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="instructions">
+            <h2>Disbelieve</h2>
+            <p><strong>← / →</strong> or <strong>A / D</strong> Move | <strong>Space</strong> or <strong>W</strong> Jump | <strong>R</strong> Restart | <strong>ESC</strong> Menu</p>
+            <p style="font-size: 20px;">⚠️ <span style="color: #ff4444">DISBELIEVE</span> <span style="color: #8c44ff">what you see!</span></p>
+            <p style="color: #44ff44;">🚪 Reach the green door to complete the level!</p>
+        </div>
+        <canvas id="gameCanvas" width="800" height="480"></canvas>
+        <div id="stats">
+            <div id="levelName" style="color: #aaa; font-size: 20px; margin-bottom: 5px;">Select a level to begin</div>
+            <div id="deathCount">Deaths: 0</div>
+        </div>
+        <!-- Audio controls -->
+        <div id="audioControls" style="color:#ccc; font-size:14px; width:800px; display:flex; gap:12px; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <label for="masterVol">Master Volume</label>
+                <input id="masterVol" type="range" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <label for="musicVol">Music Volume</label>
+                <input id="musicVol" type="range" min="0" max="1" step="0.01" value="0.6">
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <label for="sfxVol">SFX Volume</label>
+                <input id="sfxVol" type="range" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div style="color:#999; font-size:12px;">Tip: interact (press a key) to allow audio autoplay on some browsers.</div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
