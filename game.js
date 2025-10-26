@@ -92,7 +92,7 @@ const ctx = canvas.getContext('2d');
 const TILE_SIZE = 40;
 const GRAVITY = 0.5;
 const JUMP_FORCE = -10;
-const MOVE_SPEED = 3;
+const MOVE_SPEED = 4;
 const SPIKE_TRIGGER_DISTANCE = 280;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
 
@@ -114,7 +114,7 @@ const sounds = {
 
 // Volume controls (0.0 - 1.0)
 let masterVolume = 1.0;
-let musicVolume = 0.25;
+let musicVolume = 0.1;
 let sfxVolume = 1.0;
 
 // Initialize all sounds
@@ -266,9 +266,9 @@ const levels = [
       "....................",
       "....................",
       "....................",
-      "####..............D.",
-      "........2...1..#####",
-      ".....##########....."
+      "####................",
+      "........2...1.....D.",
+      ".....###############"
     ],
     spikeTriggers: [-3, 0]  // First spike: 1 tile left, Second spike: 1 tile left
   },
@@ -354,7 +354,7 @@ function parseLevel() {
     for (let col = 0; col < levelMap[row].length; col++) {
       const char = levelMap[row][col];
       const x = col * TILE_SIZE;
-      const y = row * TILE_SIZE;
+      const y = row * TILE_SIZE + 40 * 2;
 
       if (char === '#') {
         platforms.push({ x, y, width: TILE_SIZE, height: TILE_SIZE });
