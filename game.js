@@ -278,12 +278,12 @@ const levels = [
     map: [
       "....................",
       "....................",
-      ".........###........",
-      "####...#.....##.###F",
-      "...#.1...3...4....D.",
-      "...####..####..#####"
+      "...........#........",
+      "###...........#.###F",
+      ".....1...#2...3...D.",
+      "...####..#####.#####"
     ],
-    spikeTriggers: [-1, -3, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+    spikeTriggers: [-1, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   },
   // Level 4 - ??? (variety for maximum deception)
   {
@@ -479,6 +479,7 @@ function update(deltaTime) {
       // Move to next level
       if (currentLevel < levels.length - 1) {
         loadLevel(currentLevel + 1);
+        updateStats();
       } else {
         // Game complete, return to menu
         gameState = 'menu';
@@ -654,7 +655,7 @@ function die() {
 // Update stats display
 function updateStats() {
   document.getElementById('deathCount').textContent = `Deaths: ${deaths}`;
-  if (gameState === 'playing') {
+  if (gameState === 'playing' || gameState === 'levelComplete') {
     document.getElementById('levelName').textContent = levels[currentLevel].name;
   }
 }
