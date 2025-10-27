@@ -92,7 +92,7 @@ const ctx = canvas.getContext('2d');
 const TILE_SIZE = 40;
 const GRAVITY = 0.6;
 const JUMP_FORCE = -12;
-const MOVE_SPEED = 4;
+const MOVE_SPEED = 2.5;
 const SPIKE_TRIGGER_DISTANCE = 280;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
 
