@@ -293,8 +293,32 @@ const levels = [
       "....#..##...........",
       "....#...#...........",
       "....##..##..........",
-      "6.......#....3....D.",
+      "........#....3....D.",
       "###########FF.######"
+    ],
+    spikeTriggers: [-3]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  {
+    name: "Level 5: Beginner's Trap",
+    map: [
+      ".....1..............",
+      "#####.####..FF######",
+      "....................",
+      "....................",
+      ".......3...2......D.",
+      "####################"
+    ],
+    spikeTriggers: [-0.5, -3, -1]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  {
+    name: "Level 6: Too Easy?",
+    map: [
+      "....................",
+      "....................",
+      "....................",
+      "..................D.",
+      "F##FF#FFF####FFF####",
+      "11111111111111111111"
     ],
     spikeTriggers: [-3]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
@@ -828,37 +852,43 @@ function drawMenu() {
   ctx.font = '20px Arial';
   ctx.fillText('Can you survive the deception?', canvas.width / 2, 140);
 
-  // Level selection
+  // Level selection4
   ctx.fillStyle = '#aaaaaa';
   ctx.font = 'bold 32px Arial';
   ctx.fillText('SELECT LEVEL', canvas.width / 2, 220);
 
   // Level buttons
+  let y = 280;
+  let x = 0;
   for (let i = 0; i < levels.length; i++) {
-    const y = 280 + i * 70;
+    if(i >= 5 && i < 8) {
+      y = 280 + 80;
+      x = 0;
+    }
 
     // Button background
     ctx.fillStyle = '#444444';
-    ctx.fillRect(canvas.width / 2 - 200, y - 35, 400, 60);
+    ctx.fillRect(canvas.width / 2 - 200 + x * 80, y - 35, 60, 60);
     ctx.strokeStyle = '#888888';
     ctx.lineWidth = 3;
-    ctx.strokeRect(canvas.width / 2 - 200, y - 35, 400, 60);
+    ctx.strokeRect(canvas.width / 2 - 200 + x * 80, y - 35, 60, 60);
 
     // Button text
     ctx.fillStyle = '#ffffff';
     ctx.font = '24px Arial';
-    ctx.fillText(levels[i].name, canvas.width / 2, y - 5);
+    ctx.fillText(i+1, canvas.width / 2 - 170 + x * 80, y - 5);
 
     // Button hint
     ctx.fillStyle = '#888888';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Press ${i + 1} to start`, canvas.width / 2, y + 15);
+    ctx.font = '15px Arial';
+    ctx.fillText(`Press ${i + 1}`, canvas.width / 2 - 170 + x * 80, y + 15);
+    x++;
   }
 
   // Instructions
   ctx.fillStyle = '#666666';
-  ctx.font = '18px Arial';
-  ctx.fillText('Press 1, 2, or 3 to start a level', canvas.width / 2, canvas.height - 310);
+  ctx.font = '17px Arial';
+  ctx.fillText('Use numbers to start a level', canvas.width / 2, canvas.height - 310);
 
   ctx.textAlign = 'left';
 }
@@ -887,6 +917,15 @@ document.addEventListener('keydown', (e) => {
       updateStats();
     } else if (e.code === 'Digit3' || e.code === 'Numpad3') {
       loadLevel(2);
+      updateStats();
+    } else if (e.code === 'Digit4' || e.code === 'Numpad4') {
+      loadLevel(3);
+      updateStats();
+    } else if (e.code === 'Digit5' || e.code === 'Numpad5') {
+      loadLevel(4);
+      updateStats();
+    }else if (e.code === 'Digit6' || e.code === 'Numpad6') {
+      loadLevel(5);
       updateStats();
     }
     return;
