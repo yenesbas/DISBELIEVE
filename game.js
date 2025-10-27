@@ -90,8 +90,8 @@ const ctx = canvas.getContext('2d');
 
 // Game constants
 const TILE_SIZE = 40;
-const GRAVITY = 0.5;
-const JUMP_FORCE = -10;
+const GRAVITY = 0.6;
+const JUMP_FORCE = -12;
 const MOVE_SPEED = 4;
 const SPIKE_TRIGGER_DISTANCE = 280;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
@@ -284,6 +284,19 @@ const levels = [
       "...####..####..#####"
     ],
     spikeTriggers: [-1, -3, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  // Level 4 - ??? (variety for maximum deception)
+  {
+    name: "Level 4: ???",
+    map: [
+      "....#...............",
+      "....#..##...........",
+      "....#...#...........",
+      "....##..##..........",
+      "6.......#....3....D.",
+      "###########FF.######"
+    ],
+    spikeTriggers: [-3]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
@@ -379,10 +392,10 @@ function parseLevel() {
 
         spikes.push({
           x: x,
-          y: y,
+          y: y + 20,
           originalX: x,
           width: TILE_SIZE,
-          height: TILE_SIZE,
+          height: TILE_SIZE - 20, // Slightly shorter spike
           moveDistance: moveDistance, // Custom movement distance per spike
           triggerX: triggerX, // X position where trigger line is located
           triggerOffset: triggerOffset, // How many tiles left (for debug display)
@@ -720,22 +733,27 @@ function render() {
     ctx.fillStyle = spike.moving ? '#ff0000' : '#dd0000';
 
     // Draw triangle pointing up
+    let spikeSplits = 10;
     ctx.beginPath();
-    ctx.moveTo(spike.x + spike.width / 2, spike.y); // top
-    ctx.lineTo(spike.x, spike.y + spike.height); // bottom left
+    ctx.moveTo(spike.x + (spike.width / spikeSplits) * 2 , spike.y); // top
+    for (let i = 1; i < spikeSplits - 1; i = i + 2) {
+        ctx.lineTo(spike.x + (i * spike.width) / spikeSplits, spike.y + (spike.height/5) * 3); // middle points
+        ctx.lineTo(spike.x + ((i+1) * spike.width) / spikeSplits, spike.y); // top points
+    }
     ctx.lineTo(spike.x + spike.width, spike.y + spike.height); // bottom right
+    ctx.lineTo(spike.x, spike.y + spike.height); // bottom left
     ctx.closePath();
     ctx.fill();
 
     // Outline
     ctx.strokeStyle = '#aa0000';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // Show warning when spike is triggered (using spike's custom moveDistance)
     if (spike.moving) {
-      ctx.fillStyle = 'rgba(255, 0, 0, 0)';
-      ctx.fillRect(spike.originalX, spike.y - 10, spike.moveDistance + spike.width, spike.height + 10);
+      //ctx.fillStyle = 'rgba(255, 0, 0, 0)';
+      //ctx.fillRect(spike.originalX, spike.y - 10, spike.moveDistance + spike.width, spike.height + 10);
     }
   });
 
