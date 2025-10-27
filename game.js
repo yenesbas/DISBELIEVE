@@ -90,7 +90,7 @@ const ctx = canvas.getContext('2d');
 
 // Game constants
 const TILE_SIZE = 40;
-const GRAVITY = 0.6;
+const GRAVITY = 0.35;
 const JUMP_FORCE = -12;
 const MOVE_SPEED = 2.5;
 const SPIKE_TRIGGER_DISTANCE = 280;
