@@ -357,19 +357,20 @@ const levels = [
   {
     name: "Level 9: ???",
     map: [
-      "####################",
-      ".....#.....FF....D..",
-      "####################",
-      ".3.....3........F...",
-      "####################",
-      "...#.........F#.....",
-      "####################",
       "....................",
-      "####################",
-      ".F...4..............",
-      "####################"
+      "....................",
+      "....................",
+      "#####F#F###########F",
+      ".....2.....#......F.",
+      ".........#.#.#....F.",
+      ".........#...#.2#...",
+      "###############F####",
+      ".........#...#....#.",
+      ".........#.#.#....#.",
+      ".....2D....#...4#....",
+      "###################F"
     ],
-    spikeTriggers: [-4, -2, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+    spikeTriggers: [-1, -2, -1, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
@@ -440,7 +441,7 @@ function parseLevel() {
     for (let col = 0; col < levelMap[row].length; col++) {
       const char = levelMap[row][col];
       const x = col * TILE_SIZE;
-      const y = row * TILE_SIZE + 40 * 2;
+      const y = row * TILE_SIZE;
 
       if (char === '#') {
         platforms.push({ x, y, width: TILE_SIZE, height: TILE_SIZE });
