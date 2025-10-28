@@ -353,6 +353,23 @@ const levels = [
       "...................."
     ],
     spikeTriggers: [-4, -2, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  {
+    name: "Level 9: ???",
+    map: [
+      "####################",
+      ".....#.....FF....D..",
+      "####################",
+      ".3.....3........F...",
+      "####################",
+      "...#.........F#.....",
+      "####################",
+      "....................",
+      "####################",
+      ".F...4..............",
+      "####################"
+    ],
+    spikeTriggers: [-4, -2, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
@@ -965,6 +982,9 @@ document.addEventListener('keydown', (e) => {
       updateStats();
     } else if (e.code === 'Digit8' || e.code === 'Numpad8') {
       loadLevel(7);
+      updateStats();
+    } else if (e.code === 'Digit9' || e.code === 'Numpad9') {
+      loadLevel(8);
       updateStats();
     }
     return;
