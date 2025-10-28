@@ -90,7 +90,7 @@ const ctx = canvas.getContext('2d');
 
 // Game constants
 const TILE_SIZE = 40;
-const GRAVITY = 0.5;
+const GRAVITY = 0.6;
 const JUMP_FORCE = -12;
 const MOVE_SPEED = 4;
 const SPIKE_TRIGGER_DISTANCE = 280;
@@ -373,7 +373,7 @@ const DEATH_FLASH_DURATION = 0.2;
 const LEVEL_COMPLETE_DURATION = 1.5;
 
 // MASTER DEBUG SWITCH - Set to false to disable ALL debug features
-const ENABLE_DEBUG_FEATURES = true;
+const ENABLE_DEBUG_FEATURES = false;
 
 // DEBUG MODE - Only works if ENABLE_DEBUG_FEATURES is true
 let DEBUG_MODE = false;
@@ -973,7 +973,7 @@ document.addEventListener('keydown', (e) => {
   // Game controls
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
   if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-  if (e.code === 'Space' || e.code === 'KeyW') {
+  if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') {
     // Prevent page scrolling when using Space or W for jump
     e.preventDefault();
     keys.space = true;
@@ -999,7 +999,7 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
   if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-  if (e.code === 'Space' || e.code === 'KeyW') keys.space = false;
+  if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') keys.space = false;
   if (e.code === 'KeyR') keys.r = false;
 });
 
