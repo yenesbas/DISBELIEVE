@@ -321,6 +321,38 @@ const levels = [
       "11111111111111111111"
     ],
     spikeTriggers: [-3]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  {
+    name: "Level 7: Up or Down?",
+    map: [
+      "...........#........",
+      "....................",
+      "........#....2......",
+      "....#.............D.",
+      "................###.",
+      ".#..................",
+      "..............F.....",
+      ".......F............",
+      "...#......#.........",
+      "...................."
+    ],
+    spikeTriggers: [-2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+  },
+  {
+    name: "Level 8: Gotcha!",
+    map: [
+      ".....#.....FF....D..",
+      ".#.....F...2.....F..",
+      ".3.....3........F...",
+      "...............#....",
+      "...#.........F#.....",
+      "..........F#........",
+      "....................",
+      "....F#..#F..........",
+      ".F...4..............",
+      "...................."
+    ],
+    spikeTriggers: [-4, -2, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
@@ -772,7 +804,7 @@ function render() {
 
     // Outline
     ctx.strokeStyle = '#aa0000';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Show warning when spike is triggered (using spike's custom moveDistance)
@@ -862,7 +894,7 @@ function drawMenu() {
   let y = 280;
   let x = 0;
   for (let i = 0; i < levels.length; i++) {
-    if(i >= 5 && i < 8) {
+    if(i == 5 && i < 8) {
       y = 280 + 80;
       x = 0;
     }
@@ -925,8 +957,14 @@ document.addEventListener('keydown', (e) => {
     } else if (e.code === 'Digit5' || e.code === 'Numpad5') {
       loadLevel(4);
       updateStats();
-    }else if (e.code === 'Digit6' || e.code === 'Numpad6') {
+    } else if (e.code === 'Digit6' || e.code === 'Numpad6') {
       loadLevel(5);
+      updateStats();
+    } else if (e.code === 'Digit7' || e.code === 'Numpad7') {
+      loadLevel(6);
+      updateStats();
+    } else if (e.code === 'Digit8' || e.code === 'Numpad8') {
+      loadLevel(7);
       updateStats();
     }
     return;
