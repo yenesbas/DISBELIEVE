@@ -398,7 +398,7 @@ const levels = [
       "###################F"
     ],
     spikeTriggers: [-2, -2.5, -3, -4, -3],           // Horizontal offsets
-    spikeTriggerLengths: [200, 81, 82, 83, 0]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+    spikeTriggerLengths: [250, 81, 82, 83, 0]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
