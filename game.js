@@ -34,6 +34,19 @@ TRIGGER LINE POSITIONS:
       * Second spike: trigger 1 tile to the left
       * Third spike: trigger 4 tiles to the left
 
+TRIGGER LINE LENGTHS (VERTICAL):
+  - By DEFAULT, trigger lines extend the FULL HEIGHT of the screen
+  - You can limit trigger length using the "spikeTriggerLengths" array
+  - Format: spikeTriggerLengths: [length1, length2, ...]
+  - Length is in pixels (use TILE_SIZE multiples: 40, 80, 120, etc.)
+  - POSITIVE values extend UPWARD from the spike top
+  - NEGATIVE values extend DOWNWARD from the spike top
+  - Example: spikeTriggerLengths: [80, -120, 40] means:
+      * First spike: trigger line goes 80px UP from spike top
+      * Second spike: trigger line goes 120px DOWN from spike top
+      * Third spike: trigger line goes 40px UP from spike top
+  - If omitted or null, that spike uses full-height trigger
+
 DEBUG MODE:
   - Set DEBUG_MODE = true (line 170) to see yellow trigger lines in-game
   - Press 'T' during gameplay to toggle debug mode on/off
@@ -64,8 +77,9 @@ EXAMPLE LEVEL:
         "...#..1...2....FF###",  // Spikes: 1 and 2
         "...#####...#########"   // Row 5 (bottom)
       ],
-      spikeTriggers: [3, 1]  // OPTIONAL: First spike trigger at 3 tiles left, second at 1 tile left
-                              // If omitted, all spikes use default (2 tiles left)
+      spikeTriggers: [3, 1],  // OPTIONAL: First spike trigger at 3 tiles left, second at 1 tile left
+      spikeTriggerLengths: [80, -120]  // OPTIONAL: 80 = 80px UP, -120 = 120px DOWN from spike top
+                              // If omitted or null, spike uses full-height trigger
     }
   ];
 
@@ -89,11 +103,11 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // Game constants
-const TILE_SIZE = 40;
-const GRAVITY = 0.6;
-const JUMP_FORCE = -12;
-const MOVE_SPEED = 4;
-const SPIKE_TRIGGER_DISTANCE = 280;
+const TILE_SIZE = 60;
+const GRAVITY = 0.9;
+const JUMP_FORCE = -18;
+const MOVE_SPEED = 6;
+const SPIKE_TRIGGER_DISTANCE = 420;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
 
 // Sound system
@@ -285,7 +299,8 @@ const levels = [
       ".....1...#2...3...D.",
       "...####..#####.#####"
     ],
-    spikeTriggers: [-1, -2, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+    spikeTriggers: [-1, -2, -2],           // Horizontal offsets
+    spikeTriggerLengths: [180, 160, null]   // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   },
   // Level 4 - ??? (variety for maximum deception)
   {
@@ -372,17 +387,18 @@ const levels = [
       "....................",
       "....................",
       "....................",
-      "#####F#F###########F",
-      ".....2.....#......F.",
-      ".........#.#.#....F.",
-      ".........#...#.2#...",
-      "###############F####",
+      "#######F###########.",
+      "..#..2#....#......F.",
+      "..#.#.#..#.#.#....F.",
+      "...4#....F...#.2#...",
+      ".##############F####",
       ".........#...#....#.",
       ".........#.#.#....#.",
       ".....2D....#...4#....",
       "###################F"
     ],
-    spikeTriggers: [-1, -2, -1, -2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
+    spikeTriggers: [-2, -2.5, -3, -4, -3],           // Horizontal offsets
+    spikeTriggerLengths: [200, 81, 82, 83, 0]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   }
 ];
 
@@ -403,7 +419,7 @@ const DEATH_FLASH_DURATION = 0.2;
 const LEVEL_COMPLETE_DURATION = 1.5;
 
 // MASTER DEBUG SWITCH - Set to false to disable ALL debug features
-const ENABLE_DEBUG_FEATURES = false;
+const ENABLE_DEBUG_FEATURES = true;
 
 // DEBUG MODE - Only works if ENABLE_DEBUG_FEATURES is true
 let DEBUG_MODE = false;
@@ -445,6 +461,7 @@ function parseLevel() {
 
   const levelMap = levels[currentLevel].map;
   const customTriggers = levels[currentLevel].spikeTriggers || []; // Get custom triggers if defined
+  const customTriggerLengths = levels[currentLevel].spikeTriggerLengths || []; // Get custom trigger lengths
   const defaultTriggerOffset = -0.5; // Changed from 2 to -0.5 - spikes trigger when player crosses them
 
   let spikeIndex = 0; // Track which spike we're on for custom triggers
@@ -476,6 +493,32 @@ function parseLevel() {
 
         const triggerX = x - (triggerOffset * TILE_SIZE); // Position of vertical trigger line
 
+        // Determine trigger length (vertical span)
+        const triggerLength = customTriggerLengths[spikeIndex] !== undefined && customTriggerLengths[spikeIndex] !== null
+          ? customTriggerLengths[spikeIndex]
+          : null; // null means full-height
+
+        // Calculate trigger vertical bounds
+        let triggerY, triggerHeight;
+        if (triggerLength === null || triggerLength === 0) {
+          // Full-height trigger (default behavior)
+          triggerY = 0;
+          triggerHeight = canvas.height;
+        } else {
+          // Limited-height trigger from spike top
+          const spikeTopY = y + 20; // Spike's actual visual y position (top)
+          
+          if (triggerLength > 0) {
+            // POSITIVE: extends UPWARD from spike top
+            triggerY = spikeTopY - triggerLength;
+            triggerHeight = triggerLength;
+          } else {
+            // NEGATIVE: extends DOWNWARD from spike top
+            triggerY = spikeTopY;
+            triggerHeight = Math.abs(triggerLength);
+          }
+        }
+
         spikes.push({
           x: x,
           y: y + 20,
@@ -484,12 +527,14 @@ function parseLevel() {
           height: TILE_SIZE - 20, // Slightly shorter spike
           moveDistance: moveDistance, // Custom movement distance per spike
           triggerX: triggerX, // X position where trigger line is located
+          triggerY: triggerY, // Y position where trigger line starts
+          triggerHeight: triggerHeight, // Height of trigger line
           triggerOffset: triggerOffset, // How many tiles left (for debug display)
+          triggerLength: triggerLength, // Length in pixels (null = full height)
           triggered: false,
           moved: false,
           moving: false,
-          moveTimer: 0,
-          playerCrossedTrigger: false // Track if player has crossed the trigger line
+          moveTimer: 0
         });
 
         spikeIndex++;
@@ -503,10 +548,10 @@ function parseLevel() {
 // Reset player to starting position
 function resetPlayer() {
   player = {
-    x: TILE_SIZE + 10,
+    x: TILE_SIZE + 15,
     y: TILE_SIZE * 2,
-    width: 30,
-    height: 30,
+    width: 45,
+    height: 45,
     vx: 0,
     vy: 0,
     onGround: false,
@@ -520,7 +565,6 @@ function resetPlayer() {
     spike.moved = false;
     spike.moving = false;
     spike.moveTimer = 0;
-    spike.playerCrossedTrigger = false; // Reset trigger state
   });
 
   isDead = false;
@@ -590,9 +634,8 @@ function update(deltaTime) {
   // Apply gravity
   player.vy += GRAVITY;
 
-  // Update position
+  // Update horizontal position first
   player.x += player.vx;
-  player.y += player.vy;
 
   // Keep player in bounds horizontally
   if (player.x < 0) player.x = 0;
@@ -600,27 +643,37 @@ function update(deltaTime) {
     player.x = canvas.width - player.width;
   }
 
-  // Platform collision
+  // Horizontal collision check
+  platforms.forEach(platform => {
+    if (checkCollision(player, platform)) {
+      if (player.vx > 0) {
+        // Moving right, push back to left side of platform
+        player.x = platform.x - player.width;
+      } else if (player.vx < 0) {
+        // Moving left, push back to right side of platform
+        player.x = platform.x + platform.width;
+      }
+    }
+  });
+
+  // Update vertical position
+  player.y += player.vy;
+
+  // Vertical collision check
   player.onGround = false;
 
   platforms.forEach(platform => {
     if (checkCollision(player, platform)) {
-      // Check if player is falling onto platform
-      if (player.vy > 0 && player.y + player.height - player.vy <= platform.y) {
+      // Check if player is falling onto platform (landing on top)
+      if (player.vy > 0) {
         player.y = platform.y - player.height;
         player.vy = 0;
         player.onGround = true;
       }
-      // Check if player hit platform from below
-      else if (player.vy < 0 && player.y - player.vy >= platform.y + platform.height) {
+      // Check if player hit platform from below (hitting ceiling)
+      else if (player.vy < 0) {
         player.y = platform.y + platform.height;
         player.vy = 0;
-      }
-      // Horizontal collision
-      else if (player.vx > 0) {
-        player.x = platform.x - player.width;
-      } else if (player.vx < 0) {
-        player.x = platform.x + platform.width;
       }
     }
   });
@@ -681,10 +734,18 @@ function checkSpikeTriggers() {
   spikes.forEach(spike => {
     if (!spike.triggered && !spike.moved) {
       const playerRightEdge = player.x + player.width;
+      const playerLeftEdge = player.x;
+      const playerTop = player.y;
+      const playerBottom = player.y + player.height;
 
-      // Trigger when player's right edge crosses the trigger line
-      if (!spike.playerCrossedTrigger && playerRightEdge >= spike.triggerX) {
-        spike.playerCrossedTrigger = true;
+      // Check if player is within the vertical bounds of the trigger
+      const withinVerticalBounds = (playerBottom >= spike.triggerY) && (playerTop <= spike.triggerY + spike.triggerHeight);
+
+      // Check if player is currently crossing through the trigger line (left edge before line, right edge after line)
+      const currentlyCrossingLine = (playerLeftEdge < spike.triggerX) && (playerRightEdge >= spike.triggerX);
+
+      // Trigger when player actively crosses through the line AND is within vertical bounds
+      if (currentlyCrossingLine && withinVerticalBounds) {
         spike.triggered = true;
         spike.moving = true;
         spike.moveTimer = 0;
@@ -806,15 +867,23 @@ function render() {
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]); // Dashed line
       ctx.beginPath();
-      ctx.moveTo(spike.triggerX, 0);
-      ctx.lineTo(spike.triggerX, canvas.height);
+      ctx.moveTo(spike.triggerX, spike.triggerY);
+      ctx.lineTo(spike.triggerX, spike.triggerY + spike.triggerHeight);
       ctx.stroke();
       ctx.setLineDash([]); // Reset to solid line
 
-      // Draw small label showing trigger offset
+      // Draw small label showing trigger offset and length
       ctx.fillStyle = 'rgba(255, 255, 0, 0.6)';
       ctx.font = '12px Arial';
-      ctx.fillText(`-${spike.triggerOffset}`, spike.triggerX - 15, spike.y - 5);
+      let lengthLabel;
+      if (spike.triggerLength === null || spike.triggerLength === 0) {
+        lengthLabel = 'full';
+      } else if (spike.triggerLength > 0) {
+        lengthLabel = `↑${spike.triggerLength}px`;
+      } else {
+        lengthLabel = `↓${Math.abs(spike.triggerLength)}px`;
+      }
+      ctx.fillText(`-${spike.triggerOffset} [${lengthLabel}]`, spike.triggerX - 15, spike.y - 5);
     }
 
     ctx.fillStyle = spike.moving ? '#ff0000' : '#dd0000';
@@ -854,13 +923,13 @@ function render() {
     ctx.lineWidth = 2;
     ctx.strokeRect(player.x, player.y, player.width, player.height);
 
-    // Simple eyes
+    // Simple eyes (scaled for 45x45 player)
     ctx.fillStyle = 'white';
-    ctx.fillRect(player.x + 8, player.y + 8, 6, 6);
-    ctx.fillRect(player.x + 16, player.y + 8, 6, 6);
+    ctx.fillRect(player.x + 12, player.y + 12, 9, 9);
+    ctx.fillRect(player.x + 24, player.y + 12, 9, 9);
     ctx.fillStyle = 'black';
-    ctx.fillRect(player.x + 10, player.y + 10, 3, 3);
-    ctx.fillRect(player.x + 18, player.y + 10, 3, 3);
+    ctx.fillRect(player.x + 15, player.y + 15, 4, 4);
+    ctx.fillRect(player.x + 27, player.y + 15, 4, 4);
   }
 
   // Death flash
@@ -868,10 +937,10 @@ function render() {
     ctx.fillStyle = `rgba(255, 0, 0, ${deathFlashTimer / DEATH_FLASH_DURATION * 0.5})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw "X_X" face
+    // Draw "X_X" face (scaled)
     ctx.fillStyle = '#ff0000';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText('X_X', player.x - 5, player.y + 20);
+    ctx.font = 'bold 36px Arial';
+    ctx.fillText('X_X', player.x - 8, player.y + 30);
   }
 
   // Level complete overlay
@@ -906,52 +975,52 @@ function drawMenu() {
 
   // Title
   ctx.fillStyle = '#9844ffff';
-  ctx.font = 'bold 64px Arial';
+  ctx.font = 'bold 96px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('DISBELIEVE', canvas.width / 2, 100);
+  ctx.fillText('DISBELIEVE', canvas.width / 2, 150);
 
   // Subtitle
   ctx.fillStyle = '#ffffff';
-  ctx.font = '20px Arial';
-  ctx.fillText('Can you survive the deception?', canvas.width / 2, 140);
+  ctx.font = '30px Arial';
+  ctx.fillText('Can you survive the deception?', canvas.width / 2, 210);
 
-  // Level selection4
+  // Level selection
   ctx.fillStyle = '#aaaaaa';
-  ctx.font = 'bold 32px Arial';
-  ctx.fillText('SELECT LEVEL', canvas.width / 2, 220);
+  ctx.font = 'bold 48px Arial';
+  ctx.fillText('SELECT LEVEL', canvas.width / 2, 330);
 
-  // Level buttons
-  let y = 280;
+  // Level buttons (scaled to 90x90)
+  let y = 420;
   let x = 0;
   for (let i = 0; i < levels.length; i++) {
     if(i == 5 && i < 8) {
-      y = 280 + 80;
+      y = 420 + 120;
       x = 0;
     }
 
     // Button background
     ctx.fillStyle = '#444444';
-    ctx.fillRect(canvas.width / 2 - 200 + x * 80, y - 35, 60, 60);
+    ctx.fillRect(canvas.width / 2 - 300 + x * 120, y - 52, 90, 90);
     ctx.strokeStyle = '#888888';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(canvas.width / 2 - 200 + x * 80, y - 35, 60, 60);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(canvas.width / 2 - 300 + x * 120, y - 52, 90, 90);
 
     // Button text
     ctx.fillStyle = '#ffffff';
-    ctx.font = '24px Arial';
-    ctx.fillText(i+1, canvas.width / 2 - 170 + x * 80, y - 5);
+    ctx.font = '36px Arial';
+    ctx.fillText(i+1, canvas.width / 2 - 255 + x * 120, y - 7);
 
     // Button hint
     ctx.fillStyle = '#888888';
-    ctx.font = '15px Arial';
-    ctx.fillText(`Press ${i + 1}`, canvas.width / 2 - 170 + x * 80, y + 15);
+    ctx.font = '22px Arial';
+    ctx.fillText(`Press ${i + 1}`, canvas.width / 2 - 255 + x * 120, y + 23);
     x++;
   }
 
   // Instructions
   ctx.fillStyle = '#666666';
-  ctx.font = '17px Arial';
-  ctx.fillText('Use numbers to start a level', canvas.width / 2, canvas.height - 310);
+  ctx.font = '26px Arial';
+  ctx.fillText('Use numbers to start a level', canvas.width / 2, canvas.height - 50);
 
   ctx.textAlign = 'left';
 }
