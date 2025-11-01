@@ -18,10 +18,8 @@ Welcome to DISBELIEVE, a mind-bending 2D platformer where nothing is as it seems
 Here's what awaits you in DISBELIEVE:
 
 ![Gameplay Screenshot 1](screenshots/gameplay1.png)
-*(Add a screenshot showing basic gameplay)*
 
 ![Gameplay Screenshot 2](screenshots/gameplay2.png)
-*(Add a screenshot showing some traps in action)*
 
 ## 🎯 How to Play
 
