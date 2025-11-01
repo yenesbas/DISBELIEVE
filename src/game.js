@@ -104,9 +104,9 @@ const ctx = canvas.getContext('2d');
 
 // Game constants
 const TILE_SIZE = 60;
-const GRAVITY = 0.9;
-const JUMP_FORCE = -18;
-const MOVE_SPEED = 6;
+const GRAVITY = 2100; // Adjusted for time-based physics
+const JUMP_FORCE = -800; // Adjusted for time-based physics
+const MOVE_SPEED = 380; // Adjusted for time-based physics
 const SPIKE_TRIGGER_DISTANCE = 420;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
 
@@ -363,8 +363,8 @@ const levels = [
     map: [
       "....................",
       "....................",
-      "...........#........",
       "....................",
+      "...........#........",
       "........#....2......",
       "....#.............D.",
       "................###.",
@@ -372,7 +372,6 @@ const levels = [
       "..............F.....",
       ".......F............",
       "...#......#.........",
-      "...................."
     ],
     spikeTriggers: [-2]  // Spike 1: 1 tile, Spike 2: 3 tiles, Spike 3: 2 tiles left
   },
@@ -445,6 +444,32 @@ const keys = {
   r: false
 };
 
+// Track document visibility
+let isVisible = true;
+
+// Game state variables
+let isPaused = false;
+let lastTime = 0;
+
+function pauseGame() {
+    isPaused = true;
+    // Reset all controls
+    keys.left = false;
+    keys.right = false;
+    keys.space = false;
+    keys.r = false;
+    // Stop player movement
+    if (player) {
+        player.vx = 0;
+        player.vy = 0; // Also stop vertical movement
+    }
+}
+
+function resumeGame() {
+    isPaused = false;
+    lastTime = performance.now();
+}
+
 // Initialize game
 function init() {
   setupAudioControls();
@@ -452,7 +477,32 @@ function init() {
   document.addEventListener('click', tryEnableAudio, { once: true });
   document.addEventListener('keydown', tryEnableAudio, { once: true });
 
+  // Handle visibility change (alt-tab, switching tabs, etc.)
+  document.addEventListener('visibilitychange', () => {
+    isVisible = !document.hidden;
+    if (!isVisible) {
+      // Reset all controls when tab becomes invisible
+      keys.left = false;
+      keys.right = false;
+      keys.space = false;
+      keys.r = false;
+      if (player) {
+        player.vx = 0;
+      }
+    }
+  });
+
+  // Handle window blur/focus
+  window.addEventListener('blur', () => {
+    pauseGame();
+  });
+
+  window.addEventListener('focus', () => {
+    resumeGame();
+  });
+
   // Start game loop
+  lastTime = performance.now();
   gameLoop();
 }
 
@@ -617,6 +667,10 @@ function update(deltaTime) {
     return;
   }
 
+  if (isPaused) {
+    return; // Skip update if game is paused
+  }
+
   // Horizontal movement
   if (keys.left) {
     player.vx = -MOVE_SPEED;
@@ -644,11 +698,11 @@ function update(deltaTime) {
     loadLevel(currentLevel);
   }
 
-  // Apply gravity
-  player.vy += GRAVITY;
+  // Apply gravity (scaled by deltaTime)
+  player.vy += GRAVITY * deltaTime;
 
-  // Update horizontal position first
-  player.x += player.vx;
+  // Update horizontal position first (scaled by deltaTime)
+  player.x += player.vx * deltaTime;
 
   // Keep player in bounds horizontally
   if (player.x < 0) player.x = 0;
@@ -669,8 +723,8 @@ function update(deltaTime) {
     }
   });
 
-  // Update vertical position
-  player.y += player.vy;
+  // Update vertical position (scaled by deltaTime)
+  player.y += player.vy * deltaTime;
 
   // Vertical collision check
   player.onGround = false;
@@ -1005,18 +1059,21 @@ function drawMenu() {
   // Level buttons (scaled to 90x90)
   let y = 420;
   let x = 0;
+  window.levelButtons = [];
   for (let i = 0; i < levels.length; i++) {
     if(i == 5 && i < 8) {
       y = 420 + 120;
       x = 0;
     }
 
-    // Button background
+    let bx = canvas.width / 2 - 300 + x * 120;
+    let by = y - 52;
+    // Draw button
     ctx.fillStyle = '#444444';
-    ctx.fillRect(canvas.width / 2 - 300 + x * 120, y - 52, 90, 90);
+    ctx.fillRect(bx, by, 90, 90);
     ctx.strokeStyle = '#888888';
     ctx.lineWidth = 4;
-    ctx.strokeRect(canvas.width / 2 - 300 + x * 120, y - 52, 90, 90);
+    ctx.strokeRect(bx, by, 90, 90);
 
     // Button text
     ctx.fillStyle = '#ffffff';
@@ -1027,6 +1084,13 @@ function drawMenu() {
     ctx.fillStyle = '#888888';
     ctx.font = '22px Arial';
     ctx.fillText(`Press ${i + 1}`, canvas.width / 2 - 255 + x * 120, y + 23);
+    window.levelButtons.push({
+      x: bx,
+      y: by,
+      width: 90,
+      height: 90,
+      level: i
+    });
     x++;
   }
 
@@ -1039,15 +1103,24 @@ function drawMenu() {
 }
 
 // Game loop
-let lastTime = 0;
 function gameLoop(currentTime = 0) {
-  const deltaTime = (currentTime - lastTime) / 1000;
-  lastTime = currentTime;
+    if (isPaused) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
-  update(deltaTime);
-  render();
+    // Calculate delta time with safety caps
+    let deltaTime = currentTime - lastTime;
+    if (deltaTime > 100) deltaTime = 16.67; // Cap at ~60fps if tab was inactive
+    
+    lastTime = currentTime;
 
-  requestAnimationFrame(gameLoop);
+    // Convert to seconds and update
+    deltaTime = Math.min(deltaTime / 1000, 0.1); // Cap at 100ms
+    update(deltaTime);
+    render();
+
+    requestAnimationFrame(gameLoop);
 }
 
 // Keyboard event listeners
@@ -1116,6 +1189,22 @@ document.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
   if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') keys.space = false;
   if (e.code === 'KeyR') keys.r = false;
+});
+
+// Handle mouse click on canvas (for level selection)
+canvas.addEventListener('mousedown', function(e) {
+    if (gameState !== 'menu') return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    if (window.levelButtons) {
+        for (let btn of window.levelButtons) {
+            if (mx >= btn.x && mx <= btn.x + btn.width && my >= btn.y && my <= btn.y + btn.height) {
+                loadLevel(btn.level);
+                break;
+            }
+        }
+    }
 });
 
 // Start the game
