@@ -104,8 +104,8 @@ const ctx = canvas.getContext('2d');
 
 // Game constants
 const TILE_SIZE = 60;
-const GRAVITY = 2100; // Adjusted for time-based physics
-const JUMP_FORCE = -800; // Adjusted for time-based physics
+const GRAVITY = 2100 * 1.5; // Adjusted for time-based physics
+const JUMP_FORCE = -840 * 1.25; // Adjusted for time-based physics
 const MOVE_SPEED = 380; // Adjusted for time-based physics
 const SPIKE_TRIGGER_DISTANCE = 420;
 const SPIKE_MOVE_DISTANCE = TILE_SIZE * 2;
@@ -1097,7 +1097,7 @@ function drawMenu() {
   // Instructions
   ctx.fillStyle = '#666666';
   ctx.font = '26px Arial';
-  ctx.fillText('Use numbers to start a level', canvas.width / 2, canvas.height - 50);
+  ctx.fillText('Hint: DISBELIEVE WHAT YOU SEE', canvas.width / 2, canvas.height - 50);
 
   ctx.textAlign = 'left';
 }
@@ -1201,6 +1201,7 @@ canvas.addEventListener('mousedown', function(e) {
         for (let btn of window.levelButtons) {
             if (mx >= btn.x && mx <= btn.x + btn.width && my >= btn.y && my <= btn.y + btn.height) {
                 loadLevel(btn.level);
+                updateStats();
                 break;
             }
         }
